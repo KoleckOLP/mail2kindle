@@ -16,6 +16,7 @@ args = parser.parse_args()
 # Accessing arguments values
 print('path ', args.path)
 
+# Test if values from config.py are loaded
 print(smtp_server, smtp_port, sender_email, sender_password, receiver_email)
 
 # Create the MIMEMultipart message object and load it with appropriate headers
