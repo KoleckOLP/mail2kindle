@@ -59,7 +59,7 @@ for filepath in filelist:  # Paths combine here
     # Add your attachment
     with open(filepath, 'rb') as attachment:
         part = MIMEApplication(attachment.read(), Name='attachment_name')
-        part['Content-Disposition'] = f'attachment; filename="{filepath}"'
+        part['Content-Disposition'] = f'attachment; filename="{os.path.basename(filepath)}"'
         message.attach(part)
 
     print(f'emailing {filename}...')
