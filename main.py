@@ -1,13 +1,11 @@
-import os
-import argparse
-import smtplib
+import os, argparse, smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 from config import smtp_server, smtp_port, sender_email, sender_password, receiver_email
 
 # define your command line arguments
-parser = argparse.ArgumentParser(description='sending multiple files to your kindle')
+parser = argparse.ArgumentParser(description='Script to send chapters of a comic/manga to kindle')
 parser.add_argument('-pn', '--PathName', help='Path to where chapters are stored including the name of the comic, example: "C:\\Users\\Guest\\Downloads\\Manga\\Spy X Family\\Spy X Family Chapter "', required=False)
 parser.add_argument('-r', '--Range', help='Range of chapters you want to send, example: 40-45', required=False)
 parser.add_argument('-e', '--Extencion', help='Extencion of comics, example: .mobi [default = .epub]', default='.epub', required=False)
@@ -15,14 +13,6 @@ parser.add_argument('-as', '--AllowSubChapters', help='Allow sub chapters, examp
 
 # parse command line arguments
 args = parser.parse_args()
-
-'''
-# Accessing arguments values
-print(f'-pn {args.PathName}')
-print(f'-r {args.Range}')
-print(f'-e {args.Extencion}')
-print(f'-as {args.AllowSubChapters}')
-'''
 
 start, end = map(int, args.Range.split('-'))
 
@@ -40,11 +30,6 @@ for chapter in range(start, end+1):
             fileexists = os.path.isfile(filepath)
             if fileexists:
                 filelist += [filepath]        
-
-#print(filelist)
-
-# Test if values from config.py are loaded
-#print(smtp_server, smtp_port, sender_email, sender_password, receiver_email)
 
 for filepath in filelist:
     filename = os.path.splitext(os.path.basename(filepath))[0]
@@ -70,12 +55,8 @@ for filepath in filelist:
     '''
     # Send the message using the SMTP server object
     with smtplib.SMTP(smtp_server, smtp_port) as server:
-        print("starting TLS")
         server.starttls()
-        print("logging in")
         server.login(sender_email, sender_password)
-        print("sending mail")
         server.sendmail(sender_email, receiver_email, message.as_string())
-        print("all done")
+        print("sent.")
     '''
-    
