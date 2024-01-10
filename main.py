@@ -1,3 +1,4 @@
+import os
 import argparse
 import smtplib
 from email.mime.multipart import MIMEMultipart
@@ -7,44 +8,74 @@ from config import smtp_server, smtp_port, sender_email, sender_password, receiv
 
 # define your command line arguments
 parser = argparse.ArgumentParser(description='sending multiple files to your kindle')
-parser.add_argument('path', help='path where you files are stored')
-parser.add_argument('-r', '--range', help='range of chapters example: 5-10', required=False)
+parser.add_argument('-pn', '--PathName', help='Path to where chapters are stored including the name of the comic, example: "C:\\Users\\Guest\\Downloads\\Manga\\Spy X Family\\Spy X Family Chapter "', required=False)
+parser.add_argument('-r', '--Range', help='Range of chapters you want to send, example: 40-45', required=False)
+parser.add_argument('-e', '--Extencion', help='Extencion of comics, example: .mobi [default = .epub]', default='.epub', required=False)
+parser.add_argument('-as', '--AllowSubChapters', help='Allow sub chapters, example: 40.1, 40.5, 40.9 [default = False]', default=False , required=False)
 
 # parse command line arguments
 args = parser.parse_args()
 
+'''
 # Accessing arguments values
-print('path ', args.path)
+print(f'-pn {args.PathName}')
+print(f'-r {args.Range}')
+print(f'-e {args.Extencion}')
+print(f'-as {args.AllowSubChapters}')
+'''
+
+start, end = map(int, args.Range.split('-'))
+
+filelist = []
+
+# creates a list of files in the range that atually exist
+for chapter in range(start, end+1):
+    filepath = (f'{args.PathName}{chapter}{args.Extencion}')
+    fileexists = os.path.isfile(filepath)
+    if fileexists:
+        filelist += [filepath]
+    if args.AllowSubChapters:
+        for subchapter in range(1, 11):
+            filepath = (f'{args.PathName}{chapter}.{subchapter}{args.Extencion}')
+            fileexists = os.path.isfile(filepath)
+            if fileexists:
+                filelist += [filepath]        
+
+#print(filelist)
 
 # Test if values from config.py are loaded
-print(smtp_server, smtp_port, sender_email, sender_password, receiver_email)
+#print(smtp_server, smtp_port, sender_email, sender_password, receiver_email)
 
-# Create the MIMEMultipart message object and load it with appropriate headers
-message = MIMEMultipart()
-message['From'] = sender_email
-message['To'] = receiver_email
-message['Subject'] = 'here is test.jpg'
+for filepath in filelist:
+    filename = os.path.splitext(os.path.basename(filepath))[0]
 
-# Add your message body
-message_body = 'I hope you like test.jpg'
-message.attach(MIMEText(message_body, 'plain'))
+    # Create the MIMEMultipart message object and load it with appropriate headers
+    message = MIMEMultipart()
+    message['From'] = sender_email
+    message['To'] = receiver_email
+    message['Subject'] = filename
 
-file_to_send = "test.jpg"
+    # Add your message body
+    message_body = filepath
+    message.attach(MIMEText(message_body, 'plain'))
 
-# Add your attachment
-with open(file_to_send, 'rb') as attachment:
-    part = MIMEApplication(attachment.read(), Name='attachment_name')
-    part['Content-Disposition'] = f'attachment; filename="{file_to_send}"'
-    message.attach(part)
+    # Add your attachment
+    with open(filepath, 'rb') as attachment:
+        part = MIMEApplication(attachment.read(), Name='attachment_name')
+        part['Content-Disposition'] = f'attachment; filename="{filepath}"'
+        message.attach(part)
 
-print("starting sever")
+    print(f'emailing {filename}...')
 
-# Send the message using the SMTP server object
-with smtplib.SMTP(smtp_server, smtp_port) as server:
-    print("starting TLS")
-    server.starttls()
-    print("logging in")
-    server.login(sender_email, sender_password)
-    print("sending mail")
-    server.sendmail(sender_email, receiver_email, message.as_string())
-    print("all done")
+    '''
+    # Send the message using the SMTP server object
+    with smtplib.SMTP(smtp_server, smtp_port) as server:
+        print("starting TLS")
+        server.starttls()
+        print("logging in")
+        server.login(sender_email, sender_password)
+        print("sending mail")
+        server.sendmail(sender_email, receiver_email, message.as_string())
+        print("all done")
+    '''
+    
