@@ -65,8 +65,20 @@ for filepath in filelist:  # Paths combine here
     print(f'emailing {filename}...')
 
     # Send the message using the SMTP server object
-    with smtplib.SMTP(smtp_server, smtp_port) as server:
-        server.starttls()
-        server.login(sender_email, sender_password)
-        server.sendmail(sender_email, receiver_email, message.as_string())
-        print("sent.")
+    match smtp_port:
+        case 25:  # untested no protection
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.login(sender_email, sender_password)
+                server.sendmail(sender_email, receiver_email, message.as_string())
+                print("sent.")  
+        case 465:  # tested working SSL
+            with smtplib.SMTP_SSL(smtp_server, smtp_port) as server:
+                server.login(sender_email, sender_password)
+                server.sendmail(sender_email, receiver_email, message.as_string())
+                print("sent.")  
+        case 587:  # tested working STARTTCL
+            with smtplib.SMTP(smtp_server, smtp_port) as server:
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.sendmail(sender_email, receiver_email, message.as_string())
+                print("sent.")    
